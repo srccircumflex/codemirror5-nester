@@ -67,9 +67,9 @@
     <label for="code"></label><textarea id="code" name="code">
 # NESTING MODE DEMO
 
-$amount$ = 42
+$answer$ = 42
 
-for i in $amount.range$[0;]:  
+for i in $answer.range$[0;]:
   if i % 2 == 0:
     print(i, end = "$\" ")
 
@@ -78,7 +78,7 @@ print(
 	# (i) current python versions actually support infinite nesting of 
 	# an f string literal with the same quote types, as well as line 
 	# breaks and comments in replacement fields.
-	$amount$ - 12 * int(f"{9 + $amount$}")}"[0:]
+	$answer$ - 12 * int(f"{9 + $answer$}")}"[0:]
   + html§
 <html>
   <body>
