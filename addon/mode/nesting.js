@@ -12,9 +12,10 @@
  * 
  * Key Features:
  * 
- *  - STABLE NESTING
- *    The closing of a sub mode is prevented if it is itself a 
- *    nestingMode and itself contains an active sub mode.
+ *  - MULTI-LEVEL NESTING
+ *    nestingMode recognizes active nestingMode in subordinate area
+ *    configurations recursively and always handles the currently active mode
+ *    at the lowest level.
  * 
  *  - DYNAMIC SUB MODE CONFIGURATION
  *    The start of a sub mode can be defined as a character string 
@@ -22,7 +23,7 @@
  *    queried dynamically via a defined callback at runtime, 
  *    which receives a regex match that represents the start delimiter.
  * 
- *  - RECURSIVE NESTING
+ *  - MODE RECURSIONS
  *    In the sub mode configuration, the mode for the area can be 
  *    defined as a string (Mode MIME or Name) which is only queried 
  *    internally when activated by CodeMirror.getMode.
@@ -38,11 +39,15 @@
  *
  * Configuration:
  *
- *  nestingMode itself creates a valid CodeMirror mode.
- *  The main mode must be passed first. 
- *  This is followed by one or more sub mode configurations.
+ * A main mode object must be passed as the first argument, and any number of
+ * sub-mode configuration objects as the following arguments.
+ * A sub mode configuration object can be configured according to the 
+ * following patterns:
+ *  - {open, mode [, modeConfig] [, start] [, close] [, masks] [, suffixes] [, innerStyle] [[, includeDelimiters] | [, parseDelimiters] [, delimStyle]] [, comp]}
+ *  - {open, start: (match) → mode [, modeConfig] [, close] [, masks] [, suffixes] [, innerStyle] [[, includeDelimiters] | [, parseDelimiters] [, delimStyle]] [, comp]}
+ *  - {mask: true, open, [, start] [, close] [, masks] [, comp]}
  *
- *  Standard options of the sub mode configurations:
+ *  Standard options for the sub mode configurations:
  *
  *    The following options define the basic concept of a sub mode.
  *
@@ -141,7 +146,7 @@
  *        defined that can prevent leaving the area.
  *
  *        Mask configurations evaluate the following options as described above: 
- *        open, start, close, masks.
+ *        open, start, close, masks, comp.
  *
  *    - suffixes: Array[SubConfig, ...] 
  *      (optional)
@@ -170,8 +175,8 @@
  *        when comparing with each other, or is an "endMatch" in which `state`
  *        is set to the current `nestingMode` state.
  *
- *        The order in which they are compared is determined by the order in
- *        the configurations.
+ *        The order in which delimiters are potentially compared with each other is 
+ *        determined by the order in the configurations.
  * 
  * -----------------------------------------------------------------------------
  * Author: Adrian F. Hoefflin [srccircumflex]                          Nov. 2025
@@ -187,7 +192,7 @@
 })(function(CodeMirror) {
 "use strict";
 
-let Nesting = {};
+CodeMirror._Nesting = {};
 
 CodeMirror.nestingMode = function(mainMode, ...subModeConfigs) {
 
@@ -389,7 +394,7 @@ CodeMirror.nestingMode = function(mainMode, ...subModeConfigs) {
     continuation = (stream, state, endMatch, searchedFrom) => {
       state.originalString = stream.string;
 
-      if (state.subConf.mode.Nesting === Nesting) {
+      if (state.subConf.mode.Nesting === CodeMirror._Nesting) {
         // sub mode is a nestingMode
         if (state.subState.subConf || state.subState.next) {
           // active or designated sub mode in the subordinate nestingMode
@@ -871,8 +876,10 @@ CodeMirror.nestingMode = function(mainMode, ...subModeConfigs) {
 
   /* EXPORTS > */
   return {
-    Nesting: Nesting,    // flag
-    mainParser: P_MAIN,  // required for nested nestingMode
+    Nesting: CodeMirror._Nesting, 
+      // flag
+    mainParser: P_MAIN,
+      // required for nested nestingMode
 
     startState: function() {
       return {
@@ -911,7 +918,7 @@ CodeMirror.nestingMode = function(mainMode, ...subModeConfigs) {
       //  - closes a sub mode whose `close` matches "\n", 
       //  - or starts a sub mode whose open matches "\n".
       if (state.subConf) {
-        if (state.subConf.mode.Nesting !== Nesting) {
+        if (state.subConf.mode.Nesting !== CodeMirror._Nesting) {
           PI_TOKEN_GETTER = TokenGetters.blankLine;
         }
         state.subConf.mode.blankLine?.(state.subState);

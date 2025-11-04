@@ -2710,13 +2710,15 @@ editor.setOption("extraKeys", {
       <dd>
         The module defines <code>CodeMirror.nestingMode(mainMode: Mode, ...subModeConfigs)</code>
         as a mode constructor, which creates a "nesting mode" for complex requirements.
+        See <a href="../demo/nesting.html">this demo</a> for an example.
 
-        <br><strong>Key features</strong>
+        <h4>Key features</h4>
         <ul>
           <li>
-            STABLE NESTING<br>
-            The closing of a sub mode is prevented if it is itself a
-            nestingMode and itself contains an active sub mode.
+            MULTI-LEVEL NESTING<br>
+            nestingMode recognizes active nestingMode in subordinate area
+            configurations recursively and always handles the currently active mode
+            at the lowest level.
           </li>
           <li>
             DYNAMIC SUB MODE CONFIGURATION<br>
@@ -2726,7 +2728,7 @@ editor.setOption("extraKeys", {
             which receives a regex match that represents the start delimiter.
           </li>
           <li>
-            RECURSIVE NESTING<br>
+            MODE RECURSIONS<br>
             In the sub mode configuration, the mode for the area can be
             defined as a string (Mode MIME or Name) which is only queried
             internally when activated by CodeMirror.getMode.
@@ -2744,27 +2746,192 @@ editor.setOption("extraKeys", {
           </li>
         </ul>
 
-        <strong>Configuration</strong>
-
+        <h4>Configuration Overview</h4>
+        <p>
+          A main mode object must be passed as the first argument, and any number of
+          sub-mode configuration objects as the following arguments.
+          A sub mode configuration object can be configured according to the
+          following patterns:
+        </p>
         <ul>
-          <li><code>{open, ...</code></li>
+          <li><code>{open, mode [, modeConfig] [, start] [, close] [, masks] [, suffixes] [, innerStyle] [[, includeDelimiters] | [, parseDelimiters] [, delimStyle]] [, comp]}</code></li>
+          <li><code>{open, start: (match) → mode [, modeConfig] [, close] [, masks] [, suffixes] [, innerStyle] [[, includeDelimiters] | [, parseDelimiters] [, delimStyle]] [, comp]}</code></li>
+          <li><code>{mask: true, open, [, start] [, close] [, masks] [, comp]}</code></li>
         </ul>
 
+        <h4>Standard options for the sub mode configurations</h4>
+        <p>
+          The following options define the basic concept of a sub mode.
+
+          <code>open</code> and <code>close</code> pattern configurations
+          support regular expressions as well as simple string literals whose
+          character string is safely converted internally into a regular expression.
+          A possible <code>start</code> callback therefore always receives a
+          regexp match array.
+          <code>open</code> patterns must advance the parsing process, so the match must
+          consume characters. An exception is possible through the configuration
+          with <code>includeDelimiters</code>. <code>close</code> patterns do not
+          have to consume.
+          Line break characters (<code>\n</code>) are not present in the data to be parsed.
+          However, an explicit newline character (<code>\n</code>) is passed to the
+          <code>open</code> or <code>close</code> regexp to represent an empty line.
+          The delimiter parser step is skipped in that case.
+        </p>
         <dl>
           <dt><code><strong>open</strong>: string|regexp</code></dt>
           <dd>
-            ...
+            (mandatory)
+              Defines the start of the sub mode area as a string or regular
+              expression and must be present in every sub mode configuration.
           </dd>
 
-          <dt><code><strong>start</strong>: function(startMatch: RegexpMatchArray) → confUpdate: object</code></dt>
+          <dt><code><strong>start</strong>: function(startMatch: RegexpMatchArray) → confUpdate: Object</code></dt>
           <dd>
-            ...
+            (optional)
+              Callback for a dynamic update of the configuration at runtime.
+              Is executed at the start of the defined area with the regex match of
+              the start delimiter. The returned object updates this configuration.
           </dd>
 
+          <dt><code><strong>mode</strong>: string|mode object</code></dt>
+          <dd>
+            (must be set after start at the latest)
+              The mode for the defined area. Can be passed as a CodeMirror mode
+              object or as MIME or register name for creation at runtime.
+              In this case, the optional <code>modeConfig</code> option is used in
+              <code>CodeMirror.getMode(modeConfig, mode)</code>.
+          </dd>
 
+          <dt><code><strong>close</strong>: string|regexp</code></dt>
+          <dd>
+            (optional)
+              Defines the end of the sub mode area as a string or regular
+              expression. If not set, it is automatically ended at the end of
+              the line.
+          </dd>
         </dl>
 
-        See <a href="../demo/nesting.html">this demo</a> for an example.
+        <h4>Advanced tokenization options</h4>
+        <p>
+          These options can be used to define a general scope-related styling
+          of tokens in a sub mode area and to control the behavior of the parser in
+          relation to the area delimiters.
+          (these options are ignored in mask configurations)
+        </p>
+        <p>
+          By default, the delimiters are each parsed statically as an independent
+          token and provided with <code>delimStyle</code> if available.
+          Possible combinations:
+        </p>
+        <ul>
+          <li><code>[ , innerStyle ] [ , delimStyle ] [ , parseDelimiters ]</code></li>
+          <li><code>[ , innerStyle ] [ , includeDelimiters ]</code></li>
+        </ul>
+        <dl>
+          <dt><code><strong>innerStyle</strong>: string</code></dt>
+          <dd>
+            (optional)
+              A CSS class list that additionally precedes the class list of each
+              token within the area.
+          </dd>
+        </dl>
+
+        <dl>
+          <dt><code><strong>delimStyle</strong>: string</code></dt>
+          <dd>
+            (optional)
+              A CSS class name that is [additionally] prefixed to the delimiters of
+              the area. Internally, the following list prefixes are created:
+              <code>`${delimStyle} ${delimStyle}-open `</code>
+              and <code>`${delimStyle} ${delimStyle}-close `</code>.
+          </dd>
+        </dl>
+
+        <dl>
+          <dt><code><strong>parseDelimiters</strong>: true</code></dt>
+          <dd>
+            (optional)
+              If set, the contents of the delimiters are transferred in isolation
+              to the tokenization of the inner mode.
+              (default prefixes can be defined via <code>delimStyle</code>)
+          </dd>
+        </dl>
+
+        <dl>
+          <dt><code><strong>includeDelimiters</strong>: true</code></dt>
+          <dd>
+            (optional)
+              If set, delimiters are seamlessly assigned to the inner area.
+              (<code>delimStyle</code> is ignored)
+          </dd>
+        </dl>
+
+        <h4>Special parser behavior configuration</h4>
+        <dl>
+          <dt><code><strong>mask</strong>: true</code></dt>
+          <dt><code><strong>masks</strong>: Array[MaskConfig, ...]</code></dt>
+          <dd>
+          (optional)
+            Mask configurations enable a context-related definition of areas in
+            which exiting a mode is prevented. An application example would be
+            string literals that can potentially contain an open or close pattern.
+
+            Mask configurations can in themselves contain mask configurations
+            (<code>masks</code>) for nesting. In the example, this can also ensure that the
+            masking area is not terminated at a quote actually escaped
+            with a backslash.
+
+            At the root level of the configurations, the mask flag must be set to
+            <code>true</code> to define a mask configuration that can prevent leaving
+            the main mode respectively the start of a sub mode.
+
+            In sub modes (also mask modes), an array of mask configurations can be
+            defined that can prevent leaving the area.
+
+            Mask configurations evaluate the following options as described above:
+            <code>open, start, close, masks, comp</code>.
+          </dd>
+        </dl>
+
+        <dl>
+          <dt><code><strong>suffixes</strong>: Array[SubConfig, ...]</code></dt>
+          <dd>
+            (optional)
+              Suffix configurations can be assigned to a sub mode configuration,
+              which are queried once after the sub mode area is closed.
+              The configuration of suffixes supports each described option as a
+              sub mode (for concatenation also this).
+          </dd>
+        </dl>
+
+        <dl>
+          <dt><code><strong>comp</strong>: function(thisMatch: RegexpMatchArray{conf}, otherMatch: RegexpMatchArray{conf|state}) → boolean</code></dt>
+          <dd>
+            (optional)
+              For a modified delimiter comparison function to control
+              the delimiter priorities.
+
+              By default, the first match that occurs is preferred that
+              <br>· has the smallest index;
+              <br>· or has an empty content;
+              <br>· or has the longest content.
+              <br>
+              This callback must return whether <code>thisMatch</code> has still a higher
+              priority than <code>otherMatch</code>.
+
+              The transferred match objects are <code>RegExpMatchArray</code>'s in which
+              additionally the attribute <code>conf</code> or <code>state</code> is set.
+              <code>thisMatch</code>
+              is always a <code>"startMatch"</code> in which <code>conf</code> is set to the relevant
+              sub mode configuration. <code>otherMatch</code> can also be a <code>"startMatch"</code>
+              when comparing with each other, or is an <code>"endMatch"</code> in which <code>state</code>
+              is set to the current <code>nestingMode</code> state.
+
+              The order in which delimiters are potentially compared with each other is
+              determined by the order in the configurations.
+          </dd>
+        </dl>
+
       </dd>
 
       <dt id="addon_show-hint"><a href="../addon/hint/show-hint.js"><code>hint/show-hint.js</code></a></dt>
