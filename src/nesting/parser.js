@@ -2,10 +2,6 @@ import { NESTER } from "./flag.js"
 import { Pass } from "../util/misc.js";
 
 
-export function searchDelimFrom (stream, pattern) {
-  return pattern.exec(stream.data.slice(stream.pos));
-}
-
 
 function _searchOpen (stream, nests, cur) {
   let conf, match, found = null, data = stream.data.slice(cur);
@@ -13,6 +9,7 @@ function _searchOpen (stream, nests, cur) {
     match = conf.open.exec(data);
     if (match) {
       match.conf = conf;
+      match.cur = cur;
       if (!found || !found.conf.comp(found, match)) found = match;
     }
   }
@@ -148,18 +145,19 @@ export const NestParser = new class {
    *  - → `MainParser.entry`
    */
   continuation = (stream, state) => {
+
     let thisNest = state.nest;
     if (thisNest.mode.NESTER === NESTER) {
+      //return thisNest.mode.state.parser(stream, thisNest.mode.state);
+      //return thisNest.mode.parser.continuation(stream, thisNest.mode.state);
       // sub mode is a Nest
       if (thisNest.state.nest || thisNest.state.next) {
         // active or designated nest mode in the subordinate Nest
         state.parser = this.untilInnerNestClose;
         return state.parser(stream, state);
-      } else if (thisNest.mode.state.nest || thisNest.mode.state.next) {
-        return this.continuation(stream, thisNest.mode.state);
       } else {
         this.regEnd(stream, state);
-        if (thisNest.state.top.parser.regNextNest(stream, thisNest.state)) {
+        if (TopParser.regNextNest(stream, thisNest.state)) {
           // designated sub mode in the subordinate Nest found
           let next = thisNest.state.next;
           if (!state.end || next.match.conf.comp(next.match, state.end)) {
@@ -288,6 +286,10 @@ export const MaskParser = new class extends NestParser.constructor {
   // Parser that prevents leaving a certain mode as long as a mask configuration is effective.
   // *@conf* @main [ mask: true ]
   // *@conf* @sub [ masks: Array[MaskConfig, ...] ]
+
+  // Note: Features such as autocloseDelims should not be implemented for MaskParser,
+  // as existing CM modes must sometimes have delimiters and content
+  // (otherwise this can lead to infinite loops).
 
   DelimTags = {
     openFlavor: ">!o",
@@ -464,6 +466,23 @@ export const TopParser = new class extends NestParser.constructor {
     }
   }
 
+  _nextNest = (stream, state) => {
+    let nests = state.top.nests;
+    if (state.suffixes) {
+      // Search for suffixes that were registered at the time the previous configuration was closed (short validity period).
+      // *@conf* [ suffixes: <Array[<subModeConfig>, ...]> ]
+      nests = [...state.suffixes, ...nests];
+    }
+
+    let match = this.searchOpen(stream, nests)
+    if (state.suffixes && stream.string === "\n" && !match) {
+      state.suffixes = state.suffixes.filter(s => !s.inline)
+    } else {
+      state.suffixes = null;
+    }
+    return match;
+  }
+
   /**
    * Search from the current stream position for the start of a sub mode and register in `state.next` if available.
    *
@@ -476,23 +495,24 @@ export const TopParser = new class extends NestParser.constructor {
    * @returns `true` if a start was found
    */
   regNextNest = (stream, state) => {
-    let nests = state.top.nests;
-    if (state.suffixes) {
-      // Search for suffixes that were registered at the time the previous configuration was closed (short validity period).
-      // *@conf* [ suffixes: <Array[<subModeConfig>, ...]> ]
-      nests = [...state.suffixes, ...nests];
+    let match = this._nextNest(stream, state),
+        _match, _state = state;
+    while (_state.top.mode.NESTER == NESTER) {
+      _state = _state.top.state;
+      _match = this._nextNest(stream, _state);
+      if (match) {
+        if (_match && !match.conf.comp(match, _match)) {
+          match = _match;
+        }
+      } else {
+        match = _match;
+      }
     }
-
-    let match = this.searchOpen(stream, nests)
     if (match) {
       state.next = {
         match: match,
         run: match.index ? this.preStartNest : this.startNest,
       };
-    } else if (state.suffixes && stream.string === "\n") {
-      state.suffixes = state.suffixes.filter(s => !s.inline)
-    } else {
-      state.suffixes = null;
     }
     return !!match;
   }

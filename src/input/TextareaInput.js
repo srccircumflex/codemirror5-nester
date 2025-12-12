@@ -1,6 +1,6 @@
 import { operation, runInOp } from "../display/operations.js"
 import { prepareSelection } from "../display/selection.js"
-import { applyTextInput, copyableRanges, handlePaste, hiddenTextarea, disableBrowserMagic, setLastCopied } from "./input.js"
+import { applyTextInput, copyableRanges, handlePaste, hiddenTextarea, disableBrowserMagic, setLastCopied, triggerNestMaps } from "./input.js"
 import { cursorCoords, posFromMouse } from "../measurement/position_measurement.js"
 import { eventInWidget } from "../measurement/widgets.js"
 import { simpleSelection } from "../model/selection.js"
@@ -272,6 +272,11 @@ export default class TextareaInput {
                                            {className: "CodeMirror-composing"})
       }
     })
+
+    runInOp(cm, () => {
+      triggerNestMaps(cm)
+    })
+
     return true
   }
 

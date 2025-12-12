@@ -1,14 +1,13 @@
 import { CodeMirror } from "../edit/main.js";
 import { copyState, getMode } from "../modes.js";
 import StringStream from "../util/StringStream.js";
-import { MaskParser, NestParser, searchDelimFrom } from "./parser.js";
+import { MaskParser, NestParser } from "./parser.js";
 import {
   RegExp_escape,
   NestStateStarters,
   TokenGetters,
   serializeToken,
   mergeToken,
-  getActiveConf,
 } from "./utils.js";
 import { NESTER } from "./flag.js";
 
@@ -77,8 +76,9 @@ export class Nest {
    *
    * True by default
    *  - if the index of `thisMatch` is smaller;
-   *  - or is equal and the consumed string is either equal or longer
-   *    then the string in `otherMatch`, except this string is completely empty;
+   *  - or is equal and the consumed string is longer
+   *    then the string in `otherMatch`, except this
+   *    string is completely empty;
    *  - or the consumed string is completely empty.
    *
    * The transferred match objects are `RegExpMatchArray`'s in which
@@ -92,7 +92,7 @@ export class Nest {
    */
   _compDefault (thisMatch, otherMatch) {
     if (thisMatch.index == otherMatch.index) {
-      return !thisMatch[0] || thisMatch[0].length >= otherMatch[0].length && !!otherMatch[0];
+      return !thisMatch[0] || thisMatch[0].length > otherMatch[0].length && !!otherMatch[0];
     } else {
       return thisMatch.index < otherMatch.index;
     }
@@ -238,24 +238,22 @@ export class Nest {
     return nest;
   }
 
-  findNestClose (cm, nesterState, lineNo) {
-    let stackEntry = nesterState.nestStack.get(-1);
+  findNestClose (cm, lineNo) {
+    let nesterState = this.state.nesterState, stackEntry = nesterState.nestStack.get(-1);
     if (!stackEntry.endMatch) {
       let stream = new StringStream(
         cm.getLine(lineNo),
         cm.options.tabSize,
         cm,
-        stackEntry.startMatch.pos + stackEntry.startMatch[0].length,
+        stackEntry.startMatch.cur + stackEntry.startMatch.index + stackEntry.startMatch[0].length,
       );
       nesterState = {...nesterState};
       nesterState.startNestState = NestStateStarters.skip;
       if (this.mode.NESTER !== NESTER) nesterState.tokenGetter = nesterState.delimTokenGetter = TokenGetters.skip;
       while (!stackEntry.endMatch) {
         if (stream.eol()) {
-          lineNo += 1;
-          stream.string = cm.getLine(lineNo);
+          stream = stream.NewLine(cm.getLine(lineNo+=1));
           if (stream.string == undefined) break;
-          stream.start = stream.pos = 0;
         }
         nesterState.top.token(stream, nesterState);
       }

@@ -7,6 +7,13 @@
     mod(CodeMirror);
 })(function(CodeMirror) {
 
+  let RegExp_escape;
+  if (Object.hasOwn(RegExp, "escape")) {
+    RegExp_escape = RegExp.escape;
+  } else {
+    RegExp_escape = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+
   CodeMirror.defineMode("@xml.text", function (cmConfig, tagConf) {
     return {
       startState: (indent, nesterState) => {return {indent: indent == undefined ? 0 : indent, nesterState: nesterState}},
@@ -30,14 +37,6 @@
         }
       },
       indent: (state, textAfter, fullLine) => {
-        if (state.nesterState?.nest && state.nesterState.nest.close.exec(textAfter)?.index == 0) {
-          let top = state.nesterState.top,
-              outerBlockState = state.nesterState // xml-block
-                                .nesterState      // xml
-                                ?.nesterState      // xml-block
-              ;
-          if (top.indent && outerBlockState) return top.indent(outerBlockState, textAfter, fullLine);
-        }
         return state.indent;
       },
     }
@@ -62,7 +61,7 @@
           c => {
             return {
               open: typeof c[0] == "string"
-                    ? new RegExp(`${RegExp.escape(c[0])}=(?<q>["'])`)
+                    ? new RegExp(`${RegExp_escape(c[0])}=(?<q>["'])`)
                     : new RegExp(`${c[0].source}=(?<q>["'])`, c[0].flags),
               start: (match) => {
                 return {
@@ -111,23 +110,21 @@
       )
     }
 
-    const main = {
-      startState: (indent, nesterState) => {return {indent: indent, nesterState: nesterState}},
-      token: (stream, state) => {
-        if (stream.eatSpace()) {
-          var attr = /^([\w\-]+)(=("(?<v>[^"]*)"|'(?<v>[^']*)'))?/.exec(stream.string.slice(stream.pos));
-          attr && (attr[2] ? searchInnerByAttrConf(attr) : searchInnerByAttrName(attr));
-          return;
-        }
-        if (stream.next() === "=") return;
-        stream.match(/^[\w\-]*/);
-        return "attribute";
-      },
-      indent: (state, textAfter, fullLine) => state.indent,
-    };
-
     return CodeMirror.Nester(
-      main,
+      {
+        startState: (indent, nesterState) => {return {indent: indent, nesterState: nesterState}},
+        token: (stream, state) => {
+          if (stream.eatSpace()) {
+            var attr = /^([\w\-]+)(=("(?<v>[^"]*)"|'(?<v>[^']*)'))?/.exec(stream.string.slice(stream.pos));
+            attr && (attr[2] ? searchInnerByAttrConf(attr) : searchInnerByAttrName(attr));
+            return;
+          }
+          if (stream.next() === "=") return;
+          stream.match(/^[\w\-]*/);
+          return "attribute";
+        },
+        indent: (state, textAfter, fullLine) => state.indent,
+      },
       ...nestModes,
     );
   });
@@ -142,14 +139,16 @@
         delimToken: "tag",
         indent: (outer, startMatch) => /\S/.test(startMatch.input.slice(startMatch.index + 1 /* > */)) ? outer : outer + cmConfig.indentUnit,
         autoClose: {
-          text: `</${tagConf.tag}>`,
+          tag: tagConf.tag,
           configure: function (pos, stackEntry, state, cm) {
-            var conf = this,
-                tagStartMatch = state.nesterState.nestStack.get(-1).startMatch;
-            if (tagStartMatch.cur == 0 && !tagStartMatch.input.slice(0, tagStartMatch.index).match(/\S/g)) {
+            let conf = this,
+                tagStartMatch = state.nesterState.nestStack.get(-1).startMatch,
+                line = cm.getLine(pos.line);
+            if (line.slice(0, tagStartMatch.cur + tagStartMatch.index).match(`^\\s*<${RegExp_escape(conf.tag)}$`)) {
               conf = {...this};
               conf.type = "block"
             }
+            conf.text = `</${conf.tag}>`;
             return conf;
           }
         },
@@ -227,7 +226,6 @@
       }
     }
 
-
     function getTagParserConfig (tag) {
       for (var tagConf of parserConfig.tagConfigs) {
         for (var tagPattern of tagConf.tags) {
@@ -249,7 +247,7 @@
         blockInnerConf: {mode: undefined},
         parserConf: undefined,
       };
-      tagConf.esc = RegExp.escape(tagConf.tag)
+      tagConf.esc = RegExp_escape(tagConf.tag)
       tagConf.parserConf = getTagParserConfig(tagConf.tag) || defaultTagConf
       tagConf.blockInnerConf.mode = tagConf.parserConf.defaultInnerMode
       tagConf.blockInnerConf.modeConfig = tagConf.parserConf.defaultInnerModeConfig

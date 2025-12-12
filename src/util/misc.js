@@ -166,3 +166,6 @@ export function findFirst(pred, from, to) {
     else from = mid + dir
   }
 }
+
+
+export function arrayNGetter (i, arr) {return arr[i < 0 ? arr.length + i : i];}

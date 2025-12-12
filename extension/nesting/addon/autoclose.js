@@ -7,37 +7,35 @@
     mod(CodeMirror);
 })(function(CodeMirror) {
 
-  CodeMirror.Nester.globalDelimMap["o<$"] = (cm, inserted, token, nest, nesterState, POINTER) => {
+  CodeMirror.Nester.globalDelimMap["o<$"] = (cm, token, sel) => {
+    let nest = token.nest;
     if (nest._autoClose) {
-      let stackEntry = nest.findNestClose(cm, nesterState, POINTER.line);
+      let nesterState = nest.state,
+          stackEntry = nest.findNestClose(cm, sel.line),
+          SEL = {...sel};
       if (stackEntry && !stackEntry.endMatch) {
         let autoClose = nest._autoClose.configure(
-          {...POINTER},
+          {...sel},
           stackEntry,
           nesterState,
           cm,
         );
         if (autoClose.text) {
-          let indentNL = () => {}, setPOS = autoClose.cursor;
-          if (autoClose.indent !== false) {
-            // (default)
-            indentNL = (lineNo, how = "smart") => cm.indentLine(lineNo, how, true)
-          }
+          let sel_set = autoClose.cursor;
           if (autoClose.type == "block") {
-            cm.replaceRange(autoClose.text, POINTER, POINTER, "+insert");
-            cm.replaceRange("\n\n", POINTER, POINTER, "+insert");
-            indentNL(POINTER.line + 1);
-            let nesterState_fake = {...nesterState};
-            nesterState_fake.nest = null;
-            indentNL(POINTER.line + 2, nesterState_fake);
-            setPOS ||= {line: POINTER.line + 1, ch: Infinity};
+            cm.replaceRange(autoClose.text, SEL, SEL, "auto-delim");
+            cm.setSelection(SEL, SEL);
+            cm.replaceRange("\n\n", SEL, SEL, "!auto-block");
+            cm.indentLine(sel.line + 1, "smart", true);
+            let parent_nesterState = {...nesterState.nesterState};
+            parent_nesterState.nest = null;
+            cm.indentLine(sel.line + 2, parent_nesterState, true);
+            sel_set ||= {line: sel.line + 1, ch: Infinity};
+            cm.setSelection(sel_set, sel_set);
           } else {
-            cm.replaceRange(autoClose.text, POINTER, POINTER, "+insert");
-            setPOS = autoClose.cursor;
-          }
-          if (setPOS) {
-            POINTER.line = setPOS.line;
-            POINTER.ch = setPOS.ch;
+            sel_set ||= SEL;
+            cm.replaceRange(autoClose.text, SEL, SEL, "auto-delim");
+            cm.setSelection(sel_set, sel_set, {origin: "auto-delim"});
           }
         }
       }
@@ -65,4 +63,5 @@
       return conf;
     }
   }
+
 })

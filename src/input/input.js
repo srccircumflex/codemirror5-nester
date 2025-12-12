@@ -70,36 +70,30 @@ export function applyTextInput(cm, inserted, deleted, sel, origin) {
   }
 
   if (inserted && !paste) {
-    triggerNestMaps(cm, inserted);
     triggerElectric(cm, inserted);
   }
 
-  ensureCursorVisible(cm)
+  ensureCursorVisible(cm);
   if (cm.curOp.updateInput < 2) cm.curOp.updateInput = updateInput
   cm.curOp.typing = true
   cm.state.pasteIncoming = cm.state.cutIncoming = -1
 }
 
-function triggerNestMaps (cm, inserted) {
-  let sel = cm.doc.sel;
-  for (let i = sel.ranges.length - 1; i >= 0; i--) {
-    const POINTER = sel.ranges[i].head;
-    sel.ranges[i].anchor = POINTER;
-    //pos.ch += inserted.length;
-    let token = cm.getTokenAt(POINTER),
-        delim = token.spec.delim;
-    if (delim) {
-      let bindings = cm.Nester.globalDelimMap.fetch(delim),
-          nest = token.nest;
-      if (nest.delimMap) {
-        bindings = bindings.concat(nest.delimMap.fetch(delim));
-      }
-      for (let binding of bindings) {
-        binding(cm, inserted, token, nest, token.nesterState, POINTER);
-      }
+export function triggerNestMaps (cm) {
+  let SEL = cm.doc.sel.ranges[0].head, i;
+  cm.doc.sel.ranges[0].anchor = SEL;
+  let token = cm.getTokenAt(SEL),
+      delim = token.spec.delim;
+  if (delim) {
+    let bindings = cm.Nester.globalDelimMap.fetch(delim),
+        nest = token.nest;
+    if (nest.delimMap) {
+      bindings = bindings.concat(nest.delimMap.fetch(delim));
+    }
+    for (let binding of bindings) {
+      binding(cm, token, SEL);
     }
   }
-  cm.setSelections(sel.ranges);
 }
 
 export function triggerElectricCloseDelim (cm, token, selRange) {

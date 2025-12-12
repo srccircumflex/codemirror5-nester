@@ -1,9 +1,12 @@
-import { countColumn } from "../util/misc.js"
+import { countColumn, arrayNGetter } from "../util/misc.js"
 import { copyState, innerMode, startState } from "../modes.js"
 import StringStream from "../util/StringStream.js"
 
 import { getLine, lineNo } from "./utils_line.js"
 import { clipPos } from "./pos.js"
+
+import { NESTER } from "../nesting/flag.js"
+
 
 class SavedContext {
   constructor(state, lookAhead) {
@@ -79,37 +82,53 @@ export class Token {
     return this.spec.token;
   }
   get token () {return this.spec.token;}
-  _modeTrace;
+  _modeTrace; _innerModeInfo; _innerMode;
   get modeTrace () {
     if (this._modeTrace) return this._modeTrace;
-    let info = {mode: this.rootMode, state: this.state, nest: undefined}, i;
-    this._modeTrace = [info];
-    while (info.mode.innerMode) {
-      i = info.mode.innerMode(info.state);
-      if (!i || i.mode == info.mode) break;
-      this._modeTrace.push(info = i);
+    this._innerModeInfo = {mode: this._innerMode = this.rootMode, state: this.state};
+    this._modeTrace = [this._innerModeInfo];
+    let i;
+    while (this._innerMode.innerMode) {
+      i = this._innerMode.innerMode(this._innerModeInfo.state);
+      if (!i || i.mode == this._innerMode) break;
+      this._modeTrace.push(this._innerModeInfo = i);
+      this._innerMode = i.mode;
     }
     return this._modeTrace;
   }
-  get innerModeInfo () {
-    let trace = this.modeTrace;
-    return trace[trace.length-1];
+  modeTraceGetter (lv) {return arrayNGetter(lv, this.modeTrace);}
+  get innerMode () {this.modeTrace; return this._innerMode;}
+
+  _nestTrace;
+  get nestTrace () {
+    if (this._nestTrace) return this._nestTrace;
+    this._nestTrace = [];
+    let state = this.state;
+    while (state.NESTER === NESTER && state.nest) {
+      this._nestTrace.push(state.nest);
+      state = state.nest.state;
+    }
+    return this._nestTrace;
   }
-  modeTraceGetter (lv) {
-    let trace = this.modeTrace;
-    return trace[lv < 0 ? trace.length + lv: lv];
-  }
-  get innerMode () {return this.innerModeInfo.mode;}
+  nestTraceGetter (lv) {return arrayNGetter(lv, this.nestTrace);}
   _nesterState;
-  get nesterState () {return this._nesterState = this._nesterState != undefined ? this._nesterState : this.modeTraceGetter(-2)?.state || null;}
+  get nesterState () {
+    if (this._nesterState != undefined) return this._nesterState;
+    this._nesterState = (this.nestTraceGetter(-1) || this).state || null;
+    return this._nesterState;
+  }
+
   _nest;
   get nest () {
     if (this._nest != undefined) return this._nest;
+    let trace = this.modeTrace,
+        search = (key, from) => {for (let i = trace.length - from; !this._nest && i>=0; i--) this._nest = trace[i].state[key];};
     if (this.spec.delim && this.spec.delim.endsWith("c<")) {
-      this._nest = this.nesterState.nestBefore;
+      search("nestBefore", 2);
     } else {
-      this._nest = this.nesterState?.nest || null;
+      search("nest", 3);
     }
+    this._nest ||= null;
     return this._nest;
   }
   static FromStream (spec, rootMode, stream, state) {
@@ -311,7 +330,7 @@ function runMode(cm, text, mode, context, f, lineClasses, forceToEnd) {
       extractLineClasses(tokenSpec.token, lineClasses);
     }
     if (cm.options.addModeClass) {
-      let mName = tokenSpec.innerMode.name
+      let mName = tokenSpec._innerMode.name
       if (mName) tokenSpec.token = "m-" + (tokenSpec.token ? mName + " " + tokenSpec.token : mName)
     }
     if (!flattenSpans || curToken.token != tokenSpec.token) {

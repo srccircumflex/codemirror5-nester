@@ -65,7 +65,9 @@ export function addChangeToHistory(doc, change, selAfter, opId) {
   let time = +new Date, cur
   let last
 
-  if ((hist.lastOp == opId ||
+  if (
+    (change.origin.charAt(0) != "!")
+    && (hist.lastOp == opId ||
        hist.lastOrigin == change.origin && change.origin &&
        ((change.origin.charAt(0) == "+" && hist.lastModTime > time - (doc.cm ? doc.cm.options.historyEventDelay : 500)) ||
         change.origin.charAt(0) == "*")) &&

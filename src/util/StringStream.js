@@ -16,6 +16,8 @@ class StringStream {
     this.delims = [];
   }
 
+  NewLine (string) {return new StringStream(string, this.tabSize, this.lineOracle);}
+
   data;
   set delim (delim) {
     if (delim === undefined) {

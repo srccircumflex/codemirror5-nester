@@ -4,8 +4,11 @@ import { NESTER } from "./flag.js"
 
 
 export function serializeToken (token) {
-  if (token == null || typeof token != "object") token = {token: token || ""};
-  else if (typeof token.token == "object") token = {...token, ...token.token};
+  if (token == null || typeof token != "object") {
+    token = {token: token || ""};
+  } else if (typeof token.token == "object") {
+    token = {...token, ...token.token};
+  }
   return token;
 }
 
@@ -13,8 +16,11 @@ export function serializeToken (token) {
 export function mergeToken (base, update) {
   base = serializeToken(base), update = serializeToken(update);
   let token;
-  if (base.token && update.token) token = `${base.token} ${update.token}`;
-  else token = update.token;
+  if (base.token && update.token) {
+    token = `${base.token} ${update.token}`;
+  } else {
+    token = update.token;
+  }
   return {...base, ...update, token: token};
 }
 
@@ -46,7 +52,6 @@ export function rootNest (state) {
 
 let RegExp_escape;
 if (Object.hasOwn(RegExp, "escape")) {
-  // @ts-ignore
   RegExp_escape = RegExp.escape;
 } else {
   RegExp_escape = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
