@@ -178,7 +178,12 @@ CodeMirror.defineMode("go", function(config) {
     fold: "brace",
     blockCommentStart: "/*",
     blockCommentEnd: "*/",
-    lineComment: "//"
+    lineComment: "//",
+
+    stringQuotes: {
+      inline: {quotes: `"`, escape: `\\`},
+      multi: '`',
+    },
   };
 });
 

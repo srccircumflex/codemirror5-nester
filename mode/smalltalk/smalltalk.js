@@ -158,7 +158,11 @@ CodeMirror.defineMode('smalltalk', function(config) {
       return (state.indentation + i) * config.indentUnit;
     },
 
-    electricChars: ']'
+    electricChars: ']',
+
+    stringQuotes: {
+      multi: `'`,
+    },
   };
 
 });

@@ -155,7 +155,11 @@
 
       electricChars: "{}",
       lineComment: "--",
-      fold: "brace"
+      fold: "brace",
+
+      stringQuotes: {
+        inline: `'"`,
+      },
     };
   });
 

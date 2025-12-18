@@ -165,7 +165,12 @@ CodeMirror.defineMode('mathematica', function(_config, _parserConfig) {
       return state.tokenize(stream, state);
     },
     blockCommentStart: "(*",
-    blockCommentEnd: "*)"
+    blockCommentEnd: "*)",
+
+    stringQuotes: {
+      multi: `"`,
+      escape: `\\`,
+    },
   };
 });
 

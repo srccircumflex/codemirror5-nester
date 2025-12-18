@@ -425,7 +425,22 @@
 
       fold: "indent",
       electricInput: wordRegExp(dedentPunctualsArray.concat(dedentKeywordsArray), true),
-      lineComment: '#'
+      lineComment: '#',
+
+      stringQuotes: {
+        inline: `"`,
+        escape: `\\`,
+      },
+      heredoc: [
+        [`%(`, /\)|$/, /\\(.|$)/],
+        [
+          /<<-('?)(\w+)/,
+          (m) => {return {
+            p: new RegExp(`^\\s*${m[2]}\\s*$`),
+            exec: function (data, stream, cur) {return (stream.sol() && !cur && this.p.exec(data))}
+          }},
+        ]
+      ]
     };
   });
 

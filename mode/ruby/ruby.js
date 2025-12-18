@@ -292,7 +292,22 @@ CodeMirror.defineMode("ruby", function(config) {
 
     electricInput: /^\s*(?:end|rescue|elsif|else|\})$/,
     lineComment: "#",
-    fold: "indent"
+    fold: "indent",
+
+    stringQuotes: {
+      inline: `'"`,
+      escape: `\\`,
+    },
+    heredoc: [
+      [
+        /<<([~-]?)('?)(\w+)/,
+        (m) => {return {
+            p: new RegExp(`^\\s*${m[3]}\\s*$`),
+            exec: function (data, stream, cur) {return (stream.sol() && !cur && this.p.exec(data))}
+        }},
+      ],
+      [/%([qQwWiIrsx]?)([^\w]|_)/, (m) => {return {"[": "]", "(": ")", "{": "}", "<": ">"}[m[2]] || m[2]}]
+    ],
   };
 });
 

@@ -79,26 +79,9 @@ export function applyTextInput(cm, inserted, deleted, sel, origin) {
   cm.state.pasteIncoming = cm.state.cutIncoming = -1
 }
 
-export function triggerNestMaps (cm) {
-  let SEL = cm.doc.sel.ranges[0].head, i;
-  cm.doc.sel.ranges[0].anchor = SEL;
-  let token = cm.getTokenAt(SEL),
-      delim = token.spec.delim;
-  if (delim) {
-    let bindings = cm.Nester.globalDelimMap.fetch(delim),
-        nest = token.nest;
-    if (nest.delimMap) {
-      bindings = bindings.concat(nest.delimMap.fetch(delim));
-    }
-    for (let binding of bindings) {
-      binding(cm, token, SEL);
-    }
-  }
-}
-
 export function triggerElectricCloseDelim (cm, token, selRange) {
   if (token.spec.delim && token.spec.delim.endsWith("c<") && token.nest._indentClose) {
-    let how = token.nest._indentClose.getHow(
+    let how = token.nest._indentClose.how(
       token,
       cm.getLine(selRange.head.line),
       selRange,

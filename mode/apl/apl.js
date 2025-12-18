@@ -165,7 +165,12 @@ CodeMirror.defineMode("apl", function() {
       stream.eatWhile(/[\w\$_]/);
       state.prev = true;
       return "keyword";
-    }
+    },
+
+    stringQuotes: {
+      inline: `'`,
+    },
+
   };
 });
 

@@ -109,7 +109,11 @@ CodeMirror.defineMode("gfm", function(config, modeConfig) {
       stream.next();
       return null;
     },
-    blankLine: blankLine
+    blankLine: blankLine,
+
+    stringQuotes: {
+      multi: '`',
+    },
   };
 
   var markdownConfig = {

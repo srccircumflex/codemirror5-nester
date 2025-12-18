@@ -258,7 +258,12 @@ CodeMirror.defineMode("haskell", function(_config, modeConfig) {
 
     blockCommentStart: "{-",
     blockCommentEnd: "-}",
-    lineComment: "--"
+    lineComment: "--",
+
+    stringQuotes: {
+      inline: `"`,
+      escape: `\\`,
+    },
   };
 
 });

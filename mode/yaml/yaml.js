@@ -110,7 +110,28 @@ CodeMirror.defineMode("yaml", function() {
       };
     },
     lineComment: "#",
-    fold: "indent"
+    fold: "indent",
+
+    nestMasks: [
+      {
+        open: {exec: (data, stream, cur) => {
+          return stream.sol() && !cur && /^(\s*)[^:]+:/.exec(data)
+        }},
+        start: (m) => {return {
+          close: {
+            __padding: m[1].length,
+            exec: function (data, stream, cur) {
+              if (stream.sol() && !cur) {
+                let m = /^(\s*)\S/.exec(data);
+                if (m && m[1].length <= this.__padding) {
+                  return /^/.exec("")
+                }
+              }
+            }
+          }
+        }}
+      }
+    ],
   };
 });
 

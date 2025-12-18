@@ -132,7 +132,12 @@
         if (context.type === "keywords") return CodeMirror.commands.newlineAndIndent;
         if (context.align) return context.col + (closing ? 0 : 1);
         return context.indent + (closing ? 0 : indentUnit);
-      }
+      },
+
+      stringQuotes: {
+        inline: `'"`,
+        escape: `\\`,
+      },
     };
   });
 

@@ -246,7 +246,12 @@ CodeMirror.defineMode("cobol", function () {
     indent: function (state) {
       if (state.indentStack == null) return state.indentation;
       return state.indentStack.indent;
-    }
+    },
+
+    stringQuotes: {
+      inline: `"`,
+      escape: `\\`,
+    },
   };
 });
 

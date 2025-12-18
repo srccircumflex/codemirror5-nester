@@ -106,7 +106,12 @@ CodeMirror.defineMode('z80', function(_config, parserConfig) {
         stream.next();
       }
       return null;
-    }
+    },
+
+    stringQuotes: {
+      inline: `"`,
+      escape: `\\`,
+    },
   };
 });
 

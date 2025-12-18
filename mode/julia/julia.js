@@ -379,7 +379,13 @@ CodeMirror.defineMode("julia", function(config, parserConf) {
     blockCommentEnd: "=#",
     lineComment: "#",
     closeBrackets: "()[]{}\"\"",
-    fold: "indent"
+    fold: "indent",
+
+    stringQuotes: {
+      inline: `"`,
+      multi: [`"""`],
+      escape: `\\`,
+    },
   };
   return external;
 });

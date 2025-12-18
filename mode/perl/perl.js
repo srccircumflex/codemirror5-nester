@@ -791,7 +791,22 @@ CodeMirror.defineMode("perl",function(){
             token: function(stream, state) {
                 return (state.tokenize || tokenPerl)(stream, state);
             },
-            lineComment: '#'
+            lineComment: '#',
+
+            stringQuotes: {
+                multi: `'"`,
+                escape: `\\`,
+            },
+            heredoc: [
+                [/qq?([^\w]|_)/, (m) => m[1]],
+                [
+                /<<(['"]?)(\w+)/,
+                (m) => {return {
+                    p: new RegExp(`^\\s*${m[2]}\\s*$`),
+                    exec: function (data, stream, cur) {return (stream.sol() && !cur && this.p.exec(data))}
+                }},
+                ]
+            ]
         };
 });
 

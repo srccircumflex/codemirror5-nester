@@ -132,7 +132,15 @@ CodeMirror.defineMode("tcl", function() {
         if (stream.eatSpace()) return null;
         return state.tokenize(stream, state);
       },
-      lineComment: "#"
+      lineComment: "#",
+
+      stringQuotes: {
+        inline: `"`,
+        escape: `\\`,
+      },
+      heredoc: [
+        [`{`, `}`]
+      ],
     };
 });
 CodeMirror.defineMIME("text/x-tcl", "tcl");

@@ -175,7 +175,13 @@ CodeMirror.defineMode("sparql", function(config) {
         return context.indent + (closing ? 0 : indentUnit);
     },
 
-    lineComment: "#"
+    lineComment: "#",
+
+    stringQuotes: {
+      inline: `"`,
+      multi: [`'''`],
+      escape: `\\`,
+    },
   };
 });
 

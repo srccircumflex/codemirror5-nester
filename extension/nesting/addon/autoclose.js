@@ -7,14 +7,14 @@
     mod(CodeMirror);
 })(function(CodeMirror) {
 
-  CodeMirror.Nester.globalDelimMap["o<$"] = (cm, token, sel) => {
+  CodeMirror.Nester.autoclose = (cm, token, sel) => {
     let nest = token.nest;
-    if (nest._autoClose) {
+    if (nest.autoClose) {
       let nesterState = nest.state,
           stackEntry = nest.findNestClose(cm, sel.line),
           SEL = {...sel};
       if (stackEntry && !stackEntry.endMatch) {
-        let autoClose = nest._autoClose.configure(
+        let autoClose = nest.autoClose.configure(
           {...sel},
           stackEntry,
           nesterState,
@@ -46,7 +46,7 @@
     "block": function (pos, stackEntry, state, cm) {
       var conf = this,
           line = cm.getLine(pos.line),
-          delimStart = stackEntry.startMatch.cur + stackEntry.startMatch.index,
+          delimStart = stackEntry.startMatch.pos,
           before = line.slice(0, delimStart);
       if (
         !(

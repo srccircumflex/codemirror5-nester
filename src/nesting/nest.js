@@ -27,10 +27,10 @@ const CloseIndentions = {
     constructor (nest) {
       this.testRe = new RegExp(`^\\s*${nest.close.source}`, nest.close.flags);
     }
-    getHow (token, docLine, sel) {return this.testRe.test(docLine.slice(0, token.end)) && token.nesterState;}
+    how (token, docLine, sel) {return this.testRe.test(docLine.slice(0, token.end)) && token.nesterState;}
   },
   "force": class {
-    getHow (token) {return token.nesterState;}
+    how (token) {return token.nesterState;}
   },
 }
 
@@ -63,12 +63,11 @@ export class Nest {
   state/*: T.SomeObject | T.NestState*/;
   inline/*: true*/;
   autoClose/*: object*/;
-  _autoClose/*: object*/;
 
   /* CONFIGURATION STANDARDIZATION */
   _makePattern (pattern) {return (typeof pattern == "string") ? new RegExp(RegExp_escape(pattern)) : pattern;}
-  _closeAtSOL (stream, from) {return !from && stream.sol() && /^/.exec("");}
-  _closeAtDlm (stream, from) {return this.close.exec(stream.data.slice(from));}
+  _closeAtSOL (stream, cur) {return !cur && stream.sol() && /^/.exec("");}
+  _closeAtDlm (stream, cur) {return this.close.exec(stream.data.slice(cur), stream, cur);}
 
   /**
    * The default delimiter comparison function.
@@ -158,14 +157,14 @@ export class Nest {
     }
 
     if (conf.autoClose) {
-      nest._autoClose = conf.autoClose;
+      nest.autoClose = conf.autoClose;
       if (typeof conf.autoClose == "string") {
-        nest._autoClose = {
+        nest.autoClose = {
           text: conf.autoClose,
           configure: function (pos) {this.cursor = pos; return this;},
         };
       } else if (typeof conf.autoClose.configure == "string") {
-        nest._autoClose.configure = CodeMirror.Nester.autoCloseFactory[conf.autoClose.configure];
+        nest.autoClose.configure = CodeMirror.Nester.autoCloseFactory[conf.autoClose.configure];
       }
     }
 
@@ -271,7 +270,8 @@ export class Nest {
     mode.nestMasks ||= [];
     let cacheKey, i, conf;
     if (!mode.nestMasks.compiled) {
-      mode.nestMasks.compiled = true
+      mode.nestMasks.compiled = true;
+      mode.nestMasks = mode.nestMasks.map((e) => {e.mask = true; return e});
       if (mode.stringQuotes) {
         /**
          * = {
@@ -295,8 +295,8 @@ export class Nest {
               conf = MaskNode(
                 {
                   open: new RegExp(i.quotes),
-                  type: field,
-                  start: function (m) {return {close: new RegExp(RegExp_escape(m[0]) + (this.type == "inline" ? `|$` : ``))}},
+                  multi: field == "multi",
+                  start: function (m) {return {close: new RegExp(RegExp_escape(m[0]) + (this.multi ? `` : `|$`))}},
                   masks: i.escape ? [{
                     open: new RegExp(RegExp_escape(i.escape) + "(.|$)"),
                     close: "",
@@ -308,6 +308,24 @@ export class Nest {
             }
             mode.nestMasks.push(conf);
           }
+        }
+      }
+      if (mode.heredoc) {
+        for (let heredoc of mode.heredoc) {
+          conf = MaskNode({open: heredoc[0]});
+          if (typeof heredoc[1] == "function") {
+            conf.__close = heredoc[1];
+            conf.start = function (m) {return {close: this.__close(m)}};
+          }
+          let esc = heredoc[2];
+          if (esc) {
+            if (esc instanceof Array) {
+              conf.masks = [{open: esc[0], close: esc[1] || ``, innerStyle: "esc"}]
+            } else {
+              conf.masks = [{open: esc, close: ``, innerStyle: "esc"}]
+            }
+          }
+          mode.nestMasks.push(conf);
         }
       }
       if (mode.lineComment) {

@@ -612,7 +612,12 @@ CodeMirror.defineMode("erlang", function(cmCfg) {
         return indenter(state,textAfter);
       },
 
-    lineComment: "%"
+    lineComment: "%",
+
+    stringQuotes: {
+      inline: `"`,
+      escape: `\\`,
+    },
   };
 });
 

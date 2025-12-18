@@ -39,6 +39,8 @@
       indent: (state, textAfter, fullLine) => {
         return state.indent;
       },
+      blockCommentStart: "<!--",
+      blockCommentEnd: "-->",
     }
   });
 
@@ -142,9 +144,9 @@
           tag: tagConf.tag,
           configure: function (pos, stackEntry, state, cm) {
             let conf = this,
-                tagStartMatch = state.nesterState.nestStack.get(-1).startMatch,
+                tagStartMatch = state.nesterState.nesterState.nestStack.get(-1).startMatch,
                 line = cm.getLine(pos.line);
-            if (line.slice(0, tagStartMatch.cur + tagStartMatch.index).match(`^\\s*<${RegExp_escape(conf.tag)}$`)) {
+            if (line.slice(0, tagStartMatch.pos).match(`^\\s*$`)) {
               conf = {...this};
               conf.type = "block"
             }

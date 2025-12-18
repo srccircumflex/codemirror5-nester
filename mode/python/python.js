@@ -383,7 +383,13 @@
       electricInput: /^\s*([\}\]\)]|else:|elif |except |finally:)$/,
       closeBrackets: {triples: "'\""},
       lineComment: "#",
-      fold: "indent"
+      fold: "indent",
+
+      stringQuotes: {
+        inline: `'"`,
+        multi: [`'''`, `"""`],
+        escape: `\\`,
+      },
     };
     return external;
   });

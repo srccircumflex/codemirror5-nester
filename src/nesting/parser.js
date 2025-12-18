@@ -2,14 +2,20 @@ import { NESTER } from "./flag.js"
 import { Pass } from "../util/misc.js";
 
 
+function _matchPos (match, cur) {
+  match.cur = cur;
+  match.pos = cur + match.index;
+}
+
 
 function _searchOpen (stream, nests, cur) {
   let conf, match, found = null, data = stream.data.slice(cur);
   for (conf of nests) {
-    match = conf.open.exec(data);
+    match = conf.open.exec(data, stream, cur);
     if (match) {
       match.conf = conf;
-      match.cur = cur;
+      _matchPos(match, cur);
+
       if (!found || !found.conf.comp(found, match)) found = match;
     }
   }
@@ -20,6 +26,7 @@ function _regEnd (stream, state, nest, cur) {
   var match = nest._close(stream, cur);
   if (match) {
     match.state = state;
+    _matchPos(match, cur);
   }
   state.end = match;
 }
@@ -151,7 +158,7 @@ export const NestParser = new class {
       //return thisNest.mode.state.parser(stream, thisNest.mode.state);
       //return thisNest.mode.parser.continuation(stream, thisNest.mode.state);
       // sub mode is a Nest
-      if (thisNest.state.nest || thisNest.state.next) {
+      if (thisNest.state.nest || thisNest.state.next || thisNest.state.masks.length) {
         // active or designated nest mode in the subordinate Nest
         state.parser = this.untilInnerNestClose;
         return state.parser(stream, state);
@@ -188,7 +195,7 @@ export const NestParser = new class {
    */
   untilInnerNestClose = (stream, state) => {
     let token = this.innerToken(stream, state);
-    if (!(state.nest.state.nest || state.nest.state.next)) {
+    if (!(state.nest.state.nest || state.nest.state.next || state.nest.state.masks.length)) {
       if (token === Pass) {
         // null token
         return serialNullToken(this.atSOL(stream, state));

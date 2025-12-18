@@ -62,7 +62,15 @@ CodeMirror.defineSimpleMode("rust",{
     blockCommentStart: "/*",
     blockCommentEnd: "*/",
     lineComment: "//",
-    fold: "brace"
+    fold: "brace",
+    stringQuotes: {
+      inline: `"`,
+      escape: `\\`,
+    },
+    heredoc: [
+      [`r"`, `"`],
+      [`r#"`, `"#`],
+    ],
   }
 });
 

@@ -275,7 +275,12 @@ CodeMirror.defineMode("scheme", function () {
 
         fold: "brace-paren",
         closeBrackets: {pairs: "()[]{}\"\""},
-        lineComment: ";;"
+        lineComment: ";;",
+
+        stringQuotes: {
+            multi: `"`,
+            escape: `\\`,
+        },
     };
 });
 

@@ -1,6 +1,6 @@
 import { operation, runInOp } from "../display/operations.js"
 import { prepareSelection } from "../display/selection.js"
-import { applyTextInput, copyableRanges, handlePaste, hiddenTextarea, disableBrowserMagic, setLastCopied, triggerNestMaps } from "./input.js"
+import { applyTextInput, copyableRanges, handlePaste, hiddenTextarea, disableBrowserMagic, setLastCopied } from "./input.js"
 import { cursorCoords, posFromMouse } from "../measurement/position_measurement.js"
 import { eventInWidget } from "../measurement/widgets.js"
 import { simpleSelection } from "../model/selection.js"
@@ -10,6 +10,8 @@ import { activeElt, removeChildrenAndAdd, selectInput, rootNode } from "../util/
 import { e_preventDefault, e_stop, off, on, signalDOMEvent } from "../util/event.js"
 import { hasSelection } from "../util/feature_detection.js"
 import { Delayed, sel_dontScroll } from "../util/misc.js"
+
+import * as NestAddons from "../nesting/addons.js"
 
 // TEXTAREA INPUT STYLE
 
@@ -274,7 +276,10 @@ export default class TextareaInput {
     })
 
     runInOp(cm, () => {
-      triggerNestMaps(cm)
+      // The execution at this point creates clean history entries.
+      // Enables undo/redo sequentially for the line wrap (type: "block")
+      // and the inserted delimiter.
+      NestAddons.triggerAutoClose(cm);
     })
 
     return true

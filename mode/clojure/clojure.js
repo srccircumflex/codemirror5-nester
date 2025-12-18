@@ -282,7 +282,17 @@ CodeMirror.defineMode("clojure", function (options) {
 
     closeBrackets: {pairs: "()[]{}\"\""},
     fold: "brace",
-    lineComment: ";;"
+    lineComment: ";;",
+
+    stringQuotes: {
+      multi: `"`,
+    },
+    nestMasks: [
+      {
+        open: `#"`,
+        close: /"|$/
+      }
+    ]
   };
 });
 

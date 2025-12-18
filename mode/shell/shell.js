@@ -156,7 +156,12 @@ CodeMirror.defineMode('shell', function() {
     },
     closeBrackets: "()[]{}''\"\"``",
     lineComment: '#',
-    fold: "brace"
+    fold: "brace",
+
+    stringQuotes: {
+      multi: `'"`,
+      escape: `\\`,
+    },
   };
 });
 

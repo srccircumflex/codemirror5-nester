@@ -344,7 +344,12 @@ CodeMirror.defineMode("coffeescript", function(conf, parserConf) {
     },
 
     lineComment: "#",
-    fold: "indent"
+    fold: "indent",
+
+    stringQuotes: {
+      inline: {quotes: `'"`, escape: `\\`},
+      multi: '`',
+    },
   };
   return external;
 });

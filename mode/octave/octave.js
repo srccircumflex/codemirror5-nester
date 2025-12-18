@@ -130,7 +130,12 @@ CodeMirror.defineMode("octave", function() {
 
     lineComment: '%',
 
-    fold: 'indent'
+    fold: 'indent',
+
+    stringQuotes: {
+      inline: `'"`,
+      escape: `\\`,
+    },
   };
 });
 

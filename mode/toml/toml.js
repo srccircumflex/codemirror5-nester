@@ -79,7 +79,13 @@ CodeMirror.defineMode("toml", function () {
         stream.next();
       }
       return null;
-    }
+    },
+
+    stringQuotes: {
+      inline: `"`,
+      multi: [`"""`, `'''`],
+      escape: `\\`,
+    },
   };
 });
 

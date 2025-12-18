@@ -181,7 +181,12 @@ CodeMirror.defineMode("r", function(config) {
       else return ctx.indent + (closing ? 0 : config.indentUnit);
     },
 
-    lineComment: "#"
+    lineComment: "#",
+
+    stringQuotes: {
+      inline: `'"`,
+      escape: `\\`,
+    },
   };
 });
 

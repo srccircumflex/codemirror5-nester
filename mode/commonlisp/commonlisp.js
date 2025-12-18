@@ -116,7 +116,12 @@ CodeMirror.defineMode("commonlisp", function (config) {
     lineComment: ";;",
     fold: "brace-paren",
     blockCommentStart: "#|",
-    blockCommentEnd: "|#"
+    blockCommentEnd: "|#",
+
+    stringQuotes: {
+      inline: `"`,
+      escape: `\\`,
+    },
   };
 });
 

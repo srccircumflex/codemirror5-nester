@@ -213,7 +213,13 @@
       blockCommentStart: "/*",
       blockCommentEnd: "*/",
       fold: "brace",
-      closeBrackets: "()[]{}''\"\"``"
+      closeBrackets: "()[]{}''\"\"``",
+
+      stringQuotes: {
+        inline: `"`,
+        multi: [`"""`],
+        escape: `\\`,
+      },
     }
   })
 

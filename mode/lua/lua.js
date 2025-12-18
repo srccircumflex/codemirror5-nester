@@ -151,7 +151,15 @@ CodeMirror.defineMode("lua", function(config, parserConfig) {
     electricInput: /^\s*(?:end|until|else|\)|\})$/,
     lineComment: "--",
     blockCommentStart: "--[[",
-    blockCommentEnd: "]]"
+    blockCommentEnd: "]]",
+
+    stringQuotes: {
+      inline: `'"`,
+      escape: `\\`,
+    },
+    heredoc: [
+      ["[[", "]]"]
+    ]
   };
 });
 

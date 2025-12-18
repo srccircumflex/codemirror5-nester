@@ -211,7 +211,12 @@ CodeMirror.defineMode("asterisk", function() {
 
     blockCommentStart: ";--",
     blockCommentEnd: "--;",
-    lineComment: ";"
+    lineComment: ";",
+
+    stringQuotes: {
+      inline: `'"`,
+      escape: `\\`,
+    },
   };
 });
 

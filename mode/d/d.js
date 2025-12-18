@@ -187,7 +187,15 @@ CodeMirror.defineMode("d", function(config, parserConfig) {
     blockCommentEnd: "*/",
     blockCommentContinue: " * ",
     lineComment: "//",
-    fold: "brace"
+    fold: "brace",
+
+    stringQuotes: {
+      multi: `'"\``,
+      escape: `\\`,
+    },
+    heredoc: [
+      [`q{`, `}`]
+    ]
   };
 });
 

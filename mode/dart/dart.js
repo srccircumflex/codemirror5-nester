@@ -89,7 +89,13 @@
             return 'variable-2';
           }
         }
-      }
+      },
+
+      stringQuotes: {
+        inline: `'"`,
+        multi: [`'''`, `"""`],
+        escape: `\\`,
+      },
     }
   });
 

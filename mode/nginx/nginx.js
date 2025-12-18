@@ -169,7 +169,12 @@ CodeMirror.defineMode("nginx", function(config) {
       return state.baseIndent + n * indentUnit;
     },
 
-    electricChars: "}"
+    electricChars: "}",
+
+    stringQuotes: {
+      inline: `'"`,
+      escape: `\\`,
+    },
   };
 });
 

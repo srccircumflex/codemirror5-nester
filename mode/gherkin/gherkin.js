@@ -185,7 +185,11 @@ CodeMirror.defineMode("gherkin", function () {
         stream.eatWhile(/[^@"<#]/);
         return null;
       }
-    }
+    },
+
+    stringQuotes: {
+      multi: [`"""`],
+    },
   };
 });
 

@@ -224,6 +224,21 @@
       blockCommentEnd: "*/",
       lineComment: "//",
 
+      stringQuotes: {
+        multi: `'"`,
+        escape: `\\`,
+      },
+      heredoc: [
+        [
+          /<<<(\w+)/,
+          (m) => {return {
+              p: new RegExp(`^\\s*${m[1]};*$`),
+              exec: function (data, stream, cur) {return (stream.sol() && !cur && this.p.exec(data))}
+          }},
+        ]
+      ],
+
+
       innerMode: function(state) { return {state: state.curState, mode: state.curMode}; }
     };
   }, "htmlmixed", "clike");
