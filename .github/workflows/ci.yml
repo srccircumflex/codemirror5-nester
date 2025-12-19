@@ -1,0 +1,15 @@
+name: main
+on: [push, pull_request]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Build
+    steps:
+      - uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac #v4.0.0
+
+      - uses: actions/cache@v4
+        with:
+          path: '/home/runner/work/srccircumflex/codemirror5-nester/node_modules'
+          key: ${{ runner.os }}-modules
+
+      - run: npm install
