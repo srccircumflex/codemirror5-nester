@@ -8,7 +8,6 @@
 /mode/*/*.html
 /mode/index.html
 .*
-/bin/authors.sh
-/bin/lint
-/bin/release
-/bin/upload-release.js
+
+/extension/nester/mode/*/*test.js
+/extension/nester/mode/*/*.html

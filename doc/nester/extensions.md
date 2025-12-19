@@ -10,7 +10,7 @@ The Nester extension has high potential to migrate legacy addons to
 
 # Extensions
 
-- [extension/nesting/addon/autoclose.js](../../extension/nesting/addon/autoclose.js)
+- [extension/nesting/addon/autoclose.js](../../extension/nester/addon/autoclose.js)
 
   This optional module enables the processing of the sub mode 
   parameter `autoClose` for an automatic closing mechanism.

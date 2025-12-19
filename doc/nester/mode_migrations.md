@@ -3,7 +3,7 @@
 # Migrations
 
 The following modes were migrated to 
-[extension/nesting/mode](../../extension/nesting/mode) 
+[extension/nesting/mode](../../extension/nester/mode) 
 or created for a more stable lexical nesting:
 - handlebars
 - html

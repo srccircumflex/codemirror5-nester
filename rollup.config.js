@@ -1,4 +1,3 @@
-import buble from '@rollup/plugin-buble';
 import copy from 'rollup-plugin-copy';
 import babel from '@rollup/plugin-babel';
 
@@ -15,14 +14,12 @@ export default [
   {
     input: "src/codemirror.js",
     output: {
-      banner: `// CodeMirror, copyright (c) by Marijn Haverbeke and others
-// Distributed under an MIT license: https://codemirror.net/5/LICENSE
+      banner: `// CodeMirror5 by Marijn Haverbeke and others × Nester - copyright (c) by Adrian Hoefflin
+// Distributed under an MIT license: https://github.com/srccircumflex/codemirror5-nester/blob/master/LICENSE
 
-// This is CodeMirror (https://codemirror.net/5), a code editor
+// This is CodeMirror5 (https://codemirror.net/5), a code editor
 // implemented in JavaScript on top of the browser's DOM.
-//
-// You can find some technical background for some of the code below
-// at http://marijnhaverbeke.nl/blog/#cm-internals .
+// With the Nester extension (https://github.com/srccircumflex/codemirror5).
 `,
       format: "umd",
       file: "lib/codemirror.js",
@@ -38,29 +35,10 @@ export default [
           '@babel/plugin-proposal-optional-chaining',
           '@babel/plugin-proposal-logical-assignment-operators',
           '@babel/plugin-transform-class-properties',
+          '@babel/plugin-proposal-class-properties',
         ]
       }),
       copyVim 
     ]
-  },
-  {
-    input: ["src/addon/runmode/runmode-standalone.js"],
-    output: {
-      format: "iife",
-      file: "addon/runmode/runmode-standalone.js",
-      name: "CodeMirror",
-      freeze: false, // IE8 doesn't support Object.freeze.
-    },
-    plugins: [ buble({namedFunctionExpressions: false}) ]
-  },
-  {
-    input: ["src/addon/runmode/runmode.node.js"],
-    output: {
-      format: "cjs",
-      file: "addon/runmode/runmode.node.js",
-      name: "CodeMirror",
-      freeze: false, // IE8 doesn't support Object.freeze.
-    },
-    plugins: [ buble({namedFunctionExpressions: false}) ]
   },
 ];

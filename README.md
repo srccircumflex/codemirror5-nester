@@ -1,8 +1,8 @@
-# CodeMirror 5 \[ Nesting ]
+# CodeMirror 5 × Nester 0.1 \[ EXPERIMENTAL ]
 
 <details><summary>Original README</summary>
 
-\# CodeMirror 5
+\# **[CodeMirror 5](https://codemirror.net/5/)**
 
 **NOTE:** [CodeMirror 6](https://codemirror.net/) exists, and is more mobile-friendly, more accessible, better designed, and much more actively maintained.
 
@@ -55,8 +55,6 @@ browser (you don't need to run a webserver). Run the tests with `npm test`.
 
 </details>
 
-**_EXPERIMENTAL_**
-
 This fork arose from a problem concerning the multiplex addon of CM5 and the 
 processing of lexical nesting.
 
@@ -70,7 +68,7 @@ into existing modes.
 
 - [Nester Extensions / Addon Migration](./doc/nester/extensions.md)
 - [Nester Mode Migrations](./doc/nester/mode_migrations.md)
-- [Nester Demo](./extension/nesting/_demo/index.html)
+- [Nester Demo](./demo/nester/index.html)
 
 ### Key Features:
 
